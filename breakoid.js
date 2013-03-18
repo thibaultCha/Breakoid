@@ -3,7 +3,6 @@
 ;(function (window) {
 
     function Breakoid (canvasId) {
-
         Breakoid.NBROWS       = 7
         Breakoid.NBCOLS       = 10
         Breakoid.BRICK_WIDTH  = 48
@@ -14,7 +13,7 @@
         Breakoid.BAR_COLOR    = '#333333'
         Breakoid.BAR_MOVE     = 35
         Breakoid.BALL_COLOR   = 'red'
-        Breakoid.BALL_SIZE    = 8
+        Breakoid.BALL_SIZE    = 80
         Breakoid.BALL_SPEED   = 2
 
 
@@ -23,8 +22,8 @@
         , _ctx // context
         , _barX, _barY // bar position
         , _ballX = 100, _ballY = 250, _ballDirX = 1, _ballDirY = -1 // ball vars
-        , _interval // interval between ticks
-        , _won = false
+        , _interval, _speed = 10 // interval between ticks and speed of ticks
+        , _won = false, _pause = false // state of the game
 
         function __construct (canvasId) {
             var canvas = document.getElementById(canvasId)
@@ -57,7 +56,7 @@
             _ctx.fillStyle = Breakoid.BAR_COLOR
             _ctx.fillRect(_barX, _barY, Breakoid.BAR_WIDTH, Breakoid.BAR_HEIGHT)
             // Bar movements
-            window.document.onkeydown = moveBar
+            window.document.onkeydown = keyboardListener
         };
 
         function tick () {
@@ -82,8 +81,8 @@
             }
 
             // Ball in brick zone
-            if ( _ballY <= Breakoid.NBROWS * (Breakoid.BRICK_HEIGHT + Breakoid.EMPTY_SPACE) ) {
-                var Y = Math.floor(_ballY / (Breakoid.BRICK_HEIGHT + Breakoid.EMPTY_SPACE)) - 1
+            if ( (_ballY - Breakoid.BALL_SIZE) <= Breakoid.NBROWS * (Breakoid.BRICK_HEIGHT + Breakoid.EMPTY_SPACE) ) {
+                var Y = Math.floor((_ballY - Breakoid.BALL_SIZE + Breakoid.BRICK_HEIGHT) / (Breakoid.BRICK_HEIGHT + Breakoid.EMPTY_SPACE)) - 1
                 var X = Math.floor(_ballX / (Breakoid.BRICK_WIDTH + Breakoid.EMPTY_SPACE))
                 if (_bricksArray[Y][X]) {
                     _bricksArray[Y][X] = false
@@ -110,20 +109,28 @@
                     }
                 }
             }
-            if (_won) {
+            if (_won)
                 gameWon()
-            }
             // Bar
             _ctx.fillStyle = Breakoid.BAR_COLOR
             _ctx.fillRect(_barX, _barY, Breakoid.BAR_WIDTH, Breakoid.BAR_HEIGHT)
         };
 
-        function moveBar (e) {
-            if (e.keyCode == 39) { // Right
-                if ( (_barX + Breakoid.BAR_MOVE + Breakoid.BAR_WIDTH) <= _gameWidth ) _barX += Breakoid.BAR_MOVE 
-            }
-            else if (e.keyCode == 37) { // Left
-                if ( ((_barX - Breakoid.BAR_MOVE)) >= 0 ) _barX -= Breakoid.BAR_MOVE
+        function keyboardListener (e) {
+            switch (e.keyCode) {
+                case 39: // right
+                    if ( (_barX + Breakoid.BAR_MOVE + Breakoid.BAR_WIDTH) <= _gameWidth ) _barX += Breakoid.BAR_MOVE
+                break;
+
+                case 37: // left
+                    if ( ((_barX - Breakoid.BAR_MOVE)) >= 0 ) _barX -= Breakoid.BAR_MOVE
+                break;
+            
+                case 80:
+                    if (!_pause)
+                        pause()
+                    else
+                        resume()
             }
         };
 
@@ -136,9 +143,26 @@
             alert('You win')
         };
 
+        function gameLost () {
+            clearInterval(_interval)
+            alert('You lost')
+        };
+
+        function pause () {
+            _pause = true
+            clearInterval(_interval)
+        };
+
+        function resume () {
+            _pause = false
+            _interval = setInterval(tick, _speed)
+        };
+
+        /* PUBLIC METHODS */
+
         this.start = function () {
             if (_ctx)
-                _interval = setInterval(tick, 10)
+                _interval = setInterval(tick, _speed)
             else
                 console.log('Error during initialization. Start aborted.')
         };
