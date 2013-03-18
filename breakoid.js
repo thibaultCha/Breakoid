@@ -5,7 +5,7 @@
     function Breakoid (canvasId) {
 
         Breakoid.TICKS_INTERVAL = 10
-        Breakoid.NBROWS         = 1
+        Breakoid.NBROWS         = 6
         Breakoid.NBCOLS         = 10
         Breakoid.BRICK_HEIGHT   = 15
         Breakoid.EMPTY_SPACE    = 5
@@ -21,7 +21,7 @@
         , _brickWidth
         , _ctx // context
         , _barX, _barY // bar position
-        , _ballX = 100, _ballY = 150, _ballDirX = 1, _ballDirY = -1, _ballSpeed = 1 // ball vars //TODO PLACE BALL AUTO
+        , _ballX = 100, _ballY = 250, _ballDirX = 1, _ballDirY = -1, _ballSpeed = 1 // ball vars //TODO PLACE BALL AUTO
         , _interval // interval
         , _won, _pause = false // state of the game
 
