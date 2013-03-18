@@ -13,7 +13,7 @@
         Breakoid.BAR_HEIGHT   = 10
         Breakoid.BAR_COLOR    = '#333333'
         Breakoid.BAR_MOVE     = 35
-        Breakoid.BALL_COLOR   = '#222222'
+        Breakoid.BALL_COLOR   = 'red'
         Breakoid.BALL_SIZE    = 8
         Breakoid.BALL_SPEED   = 2
 
@@ -22,8 +22,9 @@
         , _gameWidth, _gameHeight // canvas width/height
         , _ctx // context
         , _barX, _barY // bar position
-        , _ballX = 100, _ballY = 250, _ballDirX = 1, _ballDirY = -1
-        , _interval
+        , _ballX = 100, _ballY = 250, _ballDirX = 1, _ballDirY = -1 // ball vars
+        , _interval // interval between ticks
+        , _won = false
 
         function __construct (canvasId) {
             var canvas = document.getElementById(canvasId)
@@ -37,7 +38,6 @@
                 buildGame()
             } else {
                 console.log('No canvas with id: %s', canvasId)
-                return
             }
         }  __construct(canvasId);
 
@@ -63,26 +63,55 @@
         function tick () {
             clearContext()
             // Ball
-            if ((_ballX + _ballDirX * Breakoid.BALL_SPEED) > _gameWidth) _ballDirX  = -1
-            else if ((_ballX + _ballDirX * Breakoid.BALL_SPEED) <  0) _ballDirX     =  1
-            if ((_ballY + _ballDirY * Breakoid.BALL_SPEED) > _gameHeight) _ballDirY = -1
-            else if ((_ballY + _ballDirY * Breakoid.BALL_SPEED) < 0) _ballDirY      =  1
-            
+            // right
+            if (((_ballX + _ballDirX * Breakoid.BALL_SPEED) + Breakoid.BALL_SIZE) > _gameWidth) _ballDirX = -1 
+            // left
+            else if ((_ballX + _ballDirX * Breakoid.BALL_SPEED) < 0 + Breakoid.BALL_SIZE) _ballDirX =  1 
+            // game is lost
+            if (((_ballY + _ballDirY * Breakoid.BALL_SPEED) + Breakoid.BALL_SIZE) > _gameHeight) _ballDirY = -1
+            else {
+                // top
+                if ((_ballY + _ballDirY * Breakoid.BALL_SPEED) < 0 + Breakoid.BALL_SIZE) _ballDirY =  1
+                else {
+                    // Ball touches the bar
+                    if ( ((_ballY + _ballDirY * Breakoid.BALL_SPEED) > (_gameHeight - Breakoid.BAR_HEIGHT)) && ((_ballX + _ballDirX * Breakoid.BALL_SPEED) >= _barX) && ((_ballX + _ballDirX * Breakoid.BALL_SPEED) <= (_ballX + Breakoid.BAR_WIDTH)) ) {
+                        _ballDirY = -1
+                        //_ballDirX = 2 * (_ballX - (_barX + Breakoid.BAR_WIDTH / 2)) / _gameWidth
+                    }
+                }
+            }
+
+            // Ball in brick zone
+            if ( _ballY <= Breakoid.NBROWS * (Breakoid.BRICK_HEIGHT + Breakoid.EMPTY_SPACE) ) {
+                var Y = Math.floor(_ballY / (Breakoid.BRICK_HEIGHT + Breakoid.EMPTY_SPACE)) - 1
+                var X = Math.floor(_ballX / (Breakoid.BRICK_WIDTH + Breakoid.EMPTY_SPACE))
+                if (_bricksArray[Y][X]) {
+                    _bricksArray[Y][X] = false
+                    _ballDirY = 1
+                }
+            }
+
             _ballX += _ballDirX * Breakoid.BALL_SPEED
             _ballY += _ballDirY * Breakoid.BALL_SPEED
 
             _ctx.fillStyle = Breakoid.BALL_COLOR
             _ctx.beginPath()
-            _ctx.arc(_ballX, _ballY, Breakoid.BALL_SIZE, 0, Math.PI*2, true)
+            _ctx.arc(_ballX, _ballY, Breakoid.BALL_SIZE, 0, Math.PI * 2, true)
             _ctx.closePath()
             _ctx.fill()
             // Bricks
+            _won = true
             for (var i=0 ; i<Breakoid.NBROWS ; i++) {
                 _ctx.fillStyle = _bricksArray[i].color
                 for (var j=0 ; j<Breakoid.NBCOLS ; j++) {
-                    if (_bricksArray[i][j])
+                    if (_bricksArray[i][j]) {
                         _ctx.fillRect( (j * (Breakoid.BRICK_WIDTH+Breakoid.EMPTY_SPACE)), (i * (Breakoid.BRICK_HEIGHT+Breakoid.EMPTY_SPACE)), Breakoid.BRICK_WIDTH, Breakoid.BRICK_HEIGHT)
+                        _won = false
+                    }
                 }
+            }
+            if (_won) {
+                gameWon()
             }
             // Bar
             _ctx.fillStyle = Breakoid.BAR_COLOR
@@ -100,6 +129,11 @@
 
         function clearContext () {
             _ctx.clearRect(0, 0, _gameWidth, _gameHeight)
+        };
+
+        function gameWon () {
+            clearInterval(_interval)
+            alert('You win')
         };
 
         this.start = function () {
