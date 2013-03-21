@@ -1,3 +1,6 @@
+/**
+* JavaScript Bricks Breaking game.
+*/
 ;(function (window) {
 
     function Breakoid (canvasId) {
@@ -24,6 +27,13 @@
         , _won, _pause = false // state of the game
         , _keys = [] 
 
+        /**
+        * Class constructor from canvas' id. Will calculate all element's positions.
+        *
+        * @method __construct
+        * @param {string} canvasId The html canvas's id 
+        * @return {void}
+        */
         function __construct (canvasId) {
             var canvas = document.getElementById(canvasId)
             if (canvas) {
@@ -42,6 +52,13 @@
             }
         }  __construct(canvasId);
 
+        /**
+        * Build bricks and bar assuming that all elements' positions have been calculated.
+        * Bind the keyboard for shortcuts and bar moves.
+        *
+        * @method buildGame
+        * @return {void}
+        */
         function buildGame () {
             // Bricks
             for (var i=0 ; i<Breakoid.NBROWS ; i++) {
@@ -70,6 +87,13 @@
             }
         };
 
+        /**
+        * Core method of the graphics, to be called by an interval.
+        * Will redraw every graphic element and bricks according to the _bricksArray array.
+        *
+        * @method tick
+        * @return {void}
+        */
         function tick () {
             clearContext()
             ballOnTick() // Ball
@@ -89,6 +113,12 @@
             barOnTick() // Bar
         };
 
+        /**
+        * Redraw the ball on each tick of the game. Handle collisions with bricks and bar.
+        *
+        * @method ballOnTick
+        * @return {void}
+        */
         function ballOnTick () {
             _ballX += _ballDirX
             _ballY += _ballDirY
@@ -127,6 +157,12 @@
             _ctx.fill()
         };
 
+        /**
+        * Redraw the bar on each tick of the game.
+        *
+        * @method barOnTick
+        * @return {void}
+        */
         function barOnTick () {
             if (_keys[39]) { // right
                 if (_barVelocity < Breakoid.BAR_SPEED)
@@ -148,25 +184,55 @@
             _ctx.fillRect(_barX, _barY, _barWidth, Breakoid.BAR_HEIGHT)
         };
 
+        /**
+        * Clear the canvas.
+        *
+        * @method clearContext
+        * @return {void}
+        */
         function clearContext () {
             _ctx.clearRect(0, 0, _gameWidth, _gameHeight)
         };
 
+        /**
+        * Notificate the user he won the game.
+        *
+        * @method gameWon
+        * @return {void}
+        */
         function gameWon () {
             clearInterval(_interval)
             alert('You win')
         };
 
+        /**
+        * Notificate the user he lost the game.
+        *
+        * @method gameLost
+        * @return {void}
+        */
         function gameLost () {
             clearInterval(_interval)
             alert('You lost')
         };
 
+        /**
+        * Pause the game by clearing the refreshing interval.
+        *
+        * @method pause
+        * @return {void}
+        */
         function pause () {
             _pause = true
             clearInterval(_interval)
         };
 
+        /**
+        * Resume the game by setting the refreshing interval.
+        *
+        * @method resume
+        * @return {void}
+        */
         function resume () {
             _pause = false
             _interval = setInterval(tick, Breakoid.TICKS_INTERVAL)
@@ -174,6 +240,12 @@
 
         /* PUBLIC METHODS */
 
+        /**
+        * Start the game.
+        *
+        * @method start
+        * @return {void}
+        */
         this.start = function () {
             if (_ctx)
                 _interval = setInterval(tick, Breakoid.TICKS_INTERVAL)
