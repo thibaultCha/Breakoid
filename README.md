@@ -24,7 +24,7 @@ breakoid.start()
 ## Disclaimer and suggestions
 This is a very basic game and the actual architecture is basic, but I'd wish to make it functional and playable. Code will be improved.
 
-**Fell free to submit pull requests or roadmap suggestions.** Especially if your good at Maths and stuff like this.
+**Fell free to submit pull requests or roadmap suggestions.** Especially if your good at Maths, collisions and stuff like this.
 
 ## Roadmap
 - Finish the basics (ex: sides/top of bricks collisions).

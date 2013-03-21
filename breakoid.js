@@ -1,30 +1,28 @@
-// Good JS class template: http://labs.tomasino.org/2011/11/10/javascript-class-template/
-
 ;(function (window) {
 
     function Breakoid (canvasId) {
 
-        Breakoid.TICKS_INTERVAL = 10
-        Breakoid.NBROWS         = 6
+        Breakoid.TICKS_INTERVAL = 1
+        Breakoid.NBROWS         = 1
         Breakoid.NBCOLS         = 10
         Breakoid.BRICK_HEIGHT   = 15
         Breakoid.EMPTY_SPACE    = 5
         Breakoid.BAR_HEIGHT     = 10
         Breakoid.BAR_COLOR      = '#333333'
-        Breakoid.BAR_SPEED      = 4
+        Breakoid.BAR_SPEED      = 3
         Breakoid.BAR_FRICTION   = 0.95
         Breakoid.BALL_COLOR     = 'red'
         Breakoid.BALL_SIZE      = 8
 
         var _bricksArray = new Array(Breakoid.NBROWS)
+        , _ctx // context
         , _gameWidth, _gameHeight // canvas width/height
         , _brickWidth
-        , _ctx // context
         , _barX, _barY, _barWidth, _barVelocity = 0 // bar properties
-        , _ballX = 100, _ballY = 250, _ballDirX = 1, _ballDirY = -1 // ball vars //TODO PLACE BALL AUTO
+        , _ballX, _ballY, _ballDirX = -1, _ballDirY = 1 // ball properties
         , _interval // interval
         , _won, _pause = false // state of the game
-        , _keys = []
+        , _keys = [] 
 
         function __construct (canvasId) {
             var canvas = document.getElementById(canvasId)
@@ -32,10 +30,12 @@
                 _ctx        = canvas.getContext('2d')
                 _gameWidth  = canvas.width
                 _gameHeight = canvas.height
-                _barWidth   = _gameWidth / 7.0
+                _barWidth   = _gameWidth / 8.0
                 _brickWidth = (_gameWidth / Breakoid.NBCOLS) - (Breakoid.EMPTY_SPACE * Breakoid.NBCOLS / Breakoid.NBCOLS+0.5)
                 _barX       = (canvas.width / 2) - (_barWidth / 2)
                 _barY       = canvas.height - Breakoid.BAR_HEIGHT - 2
+                _ballX      = _gameWidth / 1.3
+                _ballY      = _gameHeight / 2
                 buildGame()
             } else {
                 console.log('No canvas with id: %s', canvasId)
@@ -57,30 +57,22 @@
             // Bar
             _ctx.fillStyle = Breakoid.BAR_COLOR
             _ctx.fillRect(_barX, _barY, _barWidth, Breakoid.BAR_HEIGHT)
-            // Bar movements
-            //window.document.onkeydown = keyboardListener
-            document.body.addEventListener("keydown", function (e) {
+            // Bar movements and keyboard shortcuts
+            window.document.onkeydown = function (e) {
                 _keys[e.keyCode] = true
-            });
-            document.body.addEventListener("keyup", function (e) {
+                if (e.keyCode == 80) {
+                    if (!_pause) pause()
+                    else resume()
+                } 
+            }
+            window.document.onkeyup = function (e) {
                 _keys[e.keyCode] = false
-            });
-        };
-
-        function keyboardListener (e) {
-            /*switch (e.keyCode) {
-                case 80: // pause
-                    if (!_pause)
-                        pause()
-                    else
-                        resume()
-                break
-            }*/
+            }
         };
 
         function tick () {
             clearContext()
-            ballOnTick()
+            ballOnTick() // Ball
             // Bricks
             _won = true
             for (var i=0 ; i<Breakoid.NBROWS ; i++) {
@@ -94,22 +86,21 @@
             }
             //if (_won)
                 //gameWon()
-            // Bar
-            barOnTick()
+            barOnTick() // Bar
         };
 
         function ballOnTick () {
             _ballX += _ballDirX
             _ballY += _ballDirY
             if (_ballX + Breakoid.BALL_SIZE > _gameWidth) _ballDirX  = -1 // right border
-            else if (_ballX < 0 + Breakoid.BALL_SIZE)     _ballDirX  = 1 // left border
+            else if (_ballX - Breakoid.BALL_SIZE < 0 )    _ballDirX  = 1 // left border
             if (_ballY + Breakoid.BALL_SIZE > _gameHeight) _ballDirY = -1 // game is lost gameLost()
             else {
-                if (_ballY < 0 + Breakoid.BALL_SIZE) _ballDirY = 1 // top border
+                if (_ballY - Breakoid.BALL_SIZE < 0 ) _ballDirY = 1 // top border
                 else {
-                    // Ball touches the bar
-                    if ( 
-                        _ballY > _gameHeight - Breakoid.BAR_HEIGHT - Breakoid.BALL_SIZE
+                    // Ball touch the bar
+                    if  (
+                        _ballY + Breakoid.BALL_SIZE > _barY - 1
                         && (_ballX >= _barX && _ballX <= _barX + _barWidth)
                         ) {
                         _ballDirY = -1
@@ -117,12 +108,13 @@
                     }
                 }
             }
-            
-            if (_ballY - Breakoid.BALL_SIZE <= Breakoid.NBROWS * (Breakoid.BRICK_HEIGHT + Breakoid.EMPTY_SPACE) // ball is in brick zone
-                && _ballY - Breakoid.BALL_SIZE > Breakoid.BALL_SIZE/2) { // ball touched the top border: no need to enter here.
+
+            // Ball is in brick zone (First empty space row, the top of the game, is NOT considered as brick zone because of...)
+            if (_ballY - Breakoid.BALL_SIZE <= Breakoid.NBROWS * (Breakoid.BRICK_HEIGHT + Breakoid.EMPTY_SPACE) 
+                && _ballY - Breakoid.BALL_SIZE > Breakoid.BRICK_HEIGHT) {
                 var Y = Math.floor((_ballY - Breakoid.BALL_SIZE + Breakoid.BRICK_HEIGHT) / (Breakoid.BRICK_HEIGHT + Breakoid.EMPTY_SPACE)) - 1
                 var X = Math.floor(_ballX / (_brickWidth + Breakoid.EMPTY_SPACE))
-                if (_bricksArray[Y][X]) {
+                if (_bricksArray[Y][X]) { // ...this. And because we don't need to do this stuff anyway.
                     _bricksArray[Y][X] = false
                     _ballDirY = 1
                 }
@@ -139,8 +131,7 @@
             if (_keys[39]) { // right
                 if (_barVelocity < Breakoid.BAR_SPEED)
                     _barVelocity++
-            }
-            else if (_keys[37]) { // left
+            } else if (_keys[37]) { // left
                 if (_barVelocity > -Breakoid.BAR_SPEED)
                     _barVelocity--
             }
