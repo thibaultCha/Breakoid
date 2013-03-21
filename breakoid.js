@@ -6,7 +6,7 @@
     function Breakoid (canvasId) {
 
         Breakoid.TICKS_INTERVAL = 1
-        Breakoid.NBROWS         = 1
+        Breakoid.NBROWS         = 6
         Breakoid.NBCOLS         = 10
         Breakoid.BRICK_HEIGHT   = 15
         Breakoid.EMPTY_SPACE    = 5
@@ -108,8 +108,8 @@
                     }
                 }
             }
-            //if (_won)
-                //gameWon()
+            if (_won)
+                gameWon()
             barOnTick() // Bar
         };
 
@@ -124,7 +124,7 @@
             _ballY += _ballDirY
             if (_ballX + Breakoid.BALL_SIZE > _gameWidth) _ballDirX  = -1 // right border
             else if (_ballX - Breakoid.BALL_SIZE < 0 )    _ballDirX  = 1 // left border
-            if (_ballY + Breakoid.BALL_SIZE > _gameHeight) _ballDirY = -1 // game is lost gameLost()
+            if (_ballY + Breakoid.BALL_SIZE > _gameHeight) gameLost()
             else {
                 if (_ballY - Breakoid.BALL_SIZE < 0 ) _ballDirY = 1 // top border
                 else {
