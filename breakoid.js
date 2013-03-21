@@ -9,19 +9,19 @@
         Breakoid.NBCOLS         = 10
         Breakoid.BRICK_HEIGHT   = 15
         Breakoid.EMPTY_SPACE    = 5
-        Breakoid.BAR_WIDTH      = 80
         Breakoid.BAR_HEIGHT     = 10
         Breakoid.BAR_COLOR      = '#333333'
         Breakoid.BAR_MOVE       = 40
         Breakoid.BALL_COLOR     = '#222222'
         Breakoid.BALL_SIZE      = 8
+        Breakoid.BALL_SPEED     = 1 
 
         var _bricksArray = new Array(Breakoid.NBROWS)
         , _gameWidth, _gameHeight // canvas width/height
         , _brickWidth
         , _ctx // context
-        , _barX, _barY // bar position
-        , _ballX = 100, _ballY = 250, _ballDirX = 1, _ballDirY = -1, _ballSpeed = 1 // ball vars //TODO PLACE BALL AUTO
+        , _barX, _barY, _barWidth // bar properties
+        , _ballX = 100, _ballY = 250, _ballDirX = 1, _ballDirY = -1 // ball vars //TODO PLACE BALL AUTO
         , _interval // interval
         , _won, _pause = false // state of the game
 
@@ -31,8 +31,9 @@
                 _ctx        = canvas.getContext('2d')
                 _gameWidth  = canvas.width
                 _gameHeight = canvas.height
+                _barWidth   = _gameWidth / 6.0
                 _brickWidth = (_gameWidth / Breakoid.NBCOLS) - (Breakoid.EMPTY_SPACE * Breakoid.NBCOLS / Breakoid.NBCOLS+0.5)
-                _barX       = (canvas.width / 2) - (Breakoid.BAR_WIDTH / 2)
+                _barX       = (canvas.width / 2) - (_barWidth / 2)
                 _barY       = canvas.height - Breakoid.BAR_HEIGHT
                 buildGame()
             } else {
@@ -54,25 +55,14 @@
             }
             // Bar
             _ctx.fillStyle = Breakoid.BAR_COLOR
-            _ctx.fillRect(_barX, _barY, Breakoid.BAR_WIDTH, Breakoid.BAR_HEIGHT)
+            _ctx.fillRect(_barX, _barY, _barWidth, Breakoid.BAR_HEIGHT)
             // Bar movements
-            window.document.onkeydown = keyboardListener
+            window.document.onkeydown = barOnTick
+            window.document.onkeyup   = barOnTick
         };
 
         function keyboardListener (e) {
             switch (e.keyCode) {
-                case 39: // right
-                    if (_barX + Breakoid.BAR_MOVE + Breakoid.BAR_WIDTH <= _gameWidth)
-                        _barX += Breakoid.BAR_MOVE
-                    else
-                        _barX = _gameWidth - Breakoid.BAR_WIDTH
-                break
-                case 37: // left
-                    if (_barX - Breakoid.BAR_MOVE >= 0)
-                        _barX -= Breakoid.BAR_MOVE
-                    else
-                        _barX = 0
-                break
                 case 80: // pause
                     if (!_pause)
                         pause()
@@ -100,12 +90,12 @@
                 //gameWon()
             // Bar
             _ctx.fillStyle = Breakoid.BAR_COLOR
-            _ctx.fillRect(_barX, _barY, Breakoid.BAR_WIDTH, Breakoid.BAR_HEIGHT)
+            _ctx.fillRect(_barX, _barY, _barWidth, Breakoid.BAR_HEIGHT)
         };
 
         function ballOnTick () {
-            _ballX += _ballDirX * _ballSpeed
-            _ballY += _ballDirY * _ballSpeed
+            _ballX += _ballDirX * Breakoid.BALL_SPEED
+            _ballY += _ballDirY * Breakoid.BALL_SPEED
             if (_ballX + Breakoid.BALL_SIZE > _gameWidth) _ballDirX  = -1 // right border
             else if (_ballX < 0 + Breakoid.BALL_SIZE)     _ballDirX  = 1 // left border
             if (_ballY + Breakoid.BALL_SIZE > _gameHeight) _ballDirY = -1 // game is lost gameLost()
@@ -115,10 +105,10 @@
                     // Ball touches the bar
                     if ( 
                         _ballY > _gameHeight - Breakoid.BAR_HEIGHT - Breakoid.BALL_SIZE
-                        && (_ballX >= _barX && _ballX <= _barX + Breakoid.BAR_WIDTH)
+                        && (_ballX >= _barX && _ballX <= _barX + _barWidth)
                         ) {
                         _ballDirY = -1
-                        //_ballDirX = 2 * (_ballX - (_barX + Breakoid.BAR_WIDTH / 2)) / _gameWidth
+                        //_ballDirX = 2 * (_ballX - (_barX + _barWidth / 2)) / _gameWidth
                     }
                 }
             }
@@ -138,6 +128,23 @@
             _ctx.arc(_ballX, _ballY, Breakoid.BALL_SIZE, 0, Math.PI * 2, true)
             _ctx.closePath()
             _ctx.fill()
+        };
+
+        function barOnTick (e) {
+            switch (e) {
+                case 39: // right
+                    if (_barX + Breakoid.BAR_MOVE + _barWidth <= _gameWidth)
+                        _barX += Breakoid.BAR_MOVE
+                    else
+                        _barX = _gameWidth - _barWidth
+                break
+                case 37: // left
+                    if (_barX - Breakoid.BAR_MOVE >= 0)
+                        _barX -= Breakoid.BAR_MOVE
+                    else
+                        _barX = 0
+                break
+            }
         };
 
         function clearContext () {
