@@ -5,7 +5,7 @@
 
     function Breakoid (canvasId) {
 
-        Breakoid.TICKS_INTERVAL = 1
+        Breakoid.TICKS_INTERVAL = 5
         Breakoid.NBROWS         = 6
         Breakoid.NBCOLS         = 10
         Breakoid.BRICK_HEIGHT   = 15
@@ -13,7 +13,7 @@
         Breakoid.BAR_HEIGHT     = 10
         Breakoid.BAR_COLOR      = '#333333'
         Breakoid.BAR_SPEED      = 3
-        Breakoid.BAR_FRICTION   = 0.95
+        Breakoid.BAR_FRICTION   = 0.98
         Breakoid.BALL_COLOR     = 'red'
         Breakoid.BALL_SIZE      = 8
 
@@ -108,8 +108,8 @@
                     }
                 }
             }
-            if (_won)
-                gameWon()
+            //if (_won)
+                //gameWon()
             barOnTick() // Bar
         };
 
@@ -124,7 +124,7 @@
             _ballY += _ballDirY
             if (_ballX + Breakoid.BALL_SIZE > _gameWidth) _ballDirX  = -1 // right border
             else if (_ballX - Breakoid.BALL_SIZE < 0 )    _ballDirX  = 1 // left border
-            if (_ballY + Breakoid.BALL_SIZE > _gameHeight) gameLost()
+            if (_ballY + Breakoid.BALL_SIZE > _gameHeight) _ballDirY = -1
             else {
                 if (_ballY - Breakoid.BALL_SIZE < 0 ) _ballDirY = 1 // top border
                 else {
@@ -134,12 +134,13 @@
                         && (_ballX >= _barX && _ballX <= _barX + _barWidth)
                         ) {
                         _ballDirY = -1
-                        //_ballDirX = 2 * (_ballX - (_barX + _barWidth / 2)) / _gameWidth
+                        if (_barVelocity > 1 || _barVelocity < -1)
+                            _ballDirX = _barVelocity * 0.35
                     }
                 }
             }
-
-            // Ball is in brick zone (First empty space row, the top of the game, is NOT considered as brick zone because of...)
+ 
+            // Ball is in brick zone (First empty space row, the top of the game, is NOT considered as the brick zone because of...)
             if (_ballY - Breakoid.BALL_SIZE <= Breakoid.NBROWS * (Breakoid.BRICK_HEIGHT + Breakoid.EMPTY_SPACE) 
                 && _ballY - Breakoid.BALL_SIZE > Breakoid.BRICK_HEIGHT) {
                 var Y = Math.floor((_ballY - Breakoid.BALL_SIZE + Breakoid.BRICK_HEIGHT) / (Breakoid.BRICK_HEIGHT + Breakoid.EMPTY_SPACE)) - 1
