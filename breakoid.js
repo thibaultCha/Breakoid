@@ -13,7 +13,7 @@
         Breakoid.BAR_HEIGHT     = 10
         Breakoid.BAR_COLOR      = '#333333'
         Breakoid.BAR_SPEED      = 3
-        Breakoid.BAR_FRICTION   = 0.98
+        Breakoid.BAR_FRICTION   = 0.95
         Breakoid.BALL_COLOR     = 'red'
         Breakoid.BALL_SIZE      = 8
 
@@ -25,10 +25,12 @@
         , _ballX, _ballY, _ballDirX = -1, _ballDirY = 1 // ball properties
         , _interval // interval
         , _running = false, _pause = false // state of the game
-        , _keys = [] 
+        , _arrowKeys = [] 
 
         /**
         * Class constructor from canvas' id.
+        * Calculate bar and bricks widths if a
+        * canvas was provided, print error if not.
         *
         * @method __construct
         * @param {string} canvasId The html canvas's id 
@@ -42,6 +44,7 @@
                 _gameHeight = canvas.height
                 _barWidth   = _gameWidth / 8.0
                 _brickWidth = (_gameWidth / Breakoid.NBCOLS) - (Breakoid.EMPTY_SPACE * Breakoid.NBCOLS / Breakoid.NBCOLS+0.5)
+                keyboardListener()
                 buildGame()
             } else {
                 console.log('No canvas with id: %s', canvasId)
@@ -49,18 +52,53 @@
         }  __construct(canvasId);
 
         /**
-        * Calculate all elements positions and build the first frame.
         * Bind the keyboard for shortcuts and bar moves.
+        *
+        * @method keyboardListener
+        * return {void}
+        */
+        function keyboardListener () {
+            window.document.onkeydown = function (e) {
+                switch (e.keyCode) {
+                    case 39:
+                        _arrowKeys['right'] = true
+                    break
+                    case 37:
+                        _arrowKeys['left'] = true
+                    break
+                    case 80: // p
+                        if (!_pause) pause()
+                        else resume()
+                    break
+                    case 83: // s
+                        if (!_running) Breakoid.start()
+                    break
+                }
+            }
+            window.document.onkeyup = function (e) {
+                switch (e.keyCode) {
+                    case 39:
+                        _arrowKeys['right'] = false
+                    break
+                    case 37:
+                        _arrowKeys['left'] = false
+                    break
+                }
+            }
+        }
+
+        /**
+        * Calculate bar and ball sizes and positions and build the first frame.
         *
         * @method buildGame
         * @return {void}
         */
         function buildGame () {
-            console.log(this)
-            _barX       = (_gameWidth / 2) - (_barWidth / 2)
-            _barY       = _gameHeight - Breakoid.BAR_HEIGHT - 2
-            _ballX      = _gameWidth / 1.3
-            _ballY      = _gameHeight / 2
+            // Sizes
+            _barX  = (_gameWidth / 2) - (_barWidth / 2)
+            _barY  = _gameHeight - Breakoid.BAR_HEIGHT - 2
+            _ballX = _gameWidth / 1.3
+            _ballY = _gameHeight / 2
             clearContext()
             // Bricks
             for (var i=0 ; i<Breakoid.NBROWS ; i++) {
@@ -76,21 +114,8 @@
             // Bar
             _ctx.fillStyle = Breakoid.BAR_COLOR
             _ctx.fillRect(_barX, _barY, _barWidth, Breakoid.BAR_HEIGHT)
-            // Bar movements and keyboard shortcuts
-            window.document.onkeydown = function (e) {
-                _keys[e.keyCode] = true
-                if (e.keyCode == 80) {
-                    if (!_pause) pause()
-                    else resume()
-                } 
-                else if (e.keyCode == 82) {
-                    if (!_running)
-                        Breakoid.start()
-                }
-            }
-            window.document.onkeyup = function (e) {
-                _keys[e.keyCode] = false
-            }
+
+            console.log("Press 's' to start the game.")
         };
 
         /**
@@ -171,10 +196,10 @@
         * @return {void}
         */
         function barOnTick () {
-            if (_keys[39]) { // right
+            if (_arrowKeys['right']) { // right
                 if (_barVelocity < Breakoid.BAR_SPEED)
                     _barVelocity++
-            } else if (_keys[37]) { // left
+            } else if (_arrowKeys['left']) { // left
                 if (_barVelocity > -Breakoid.BAR_SPEED)
                     _barVelocity--
             }
@@ -210,7 +235,7 @@
         function gameWon () {
             _running = false
             clearInterval(_interval)
-            alert('You win. "R" to restart.')
+            console.log('You won.')
             buildGame()
         };
 
@@ -223,7 +248,7 @@
         function gameLost () {
             _running = false
             clearInterval(_interval)
-            alert('You lost. "R" to restart.')
+            console.log('You lost.')
             buildGame()
         };
 
@@ -249,15 +274,13 @@
             _interval = setInterval(tick, Breakoid.TICKS_INTERVAL)
         };
 
-        /* PUBLIC METHODS */
-
         /**
         * Start the game.
         *
         * @method start
         * @return {void}
         */
-        this.start = function () {
+        Breakoid.start = function () {
             if (_ctx && !_running) {
                 _running = true
                 _interval = setInterval(tick, Breakoid.TICKS_INTERVAL)
