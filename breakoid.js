@@ -22,7 +22,7 @@
         , _gameWidth, _gameHeight // canvas width/height
         , _brickWidth
         , _barX, _barY, _barWidth, _barVelocity = 0 // bar properties
-        , _ballX, _ballY, _ballDirX = -1, _ballDirY = 1 // ball properties
+        , _ballX, _ballY, _ballDirX, _ballDirY // ball properties
         , _interval // interval
         , _running = false, _pause = false // state of the game
         , _arrowKeys = [] 
@@ -66,12 +66,18 @@
                     case 37:
                         _arrowKeys['left'] = true
                     break
-                    case 80: // p
-                        if (!_pause) pause()
-                        else resume()
+                    case 80: // p (pause)
+                        if (!_pause && _running) pause()
+                        else if (_running) resume()
                     break
-                    case 83: // s
-                        if (!_running) Breakoid.start()
+                    case 82: // r (restart)
+                        _running = false
+                        clearInterval(_interval)
+                        buildGame()
+                    break
+                    case 83: // s (start)
+                        if (!_running)
+                            start()
                     break
                 }
             }
@@ -95,10 +101,12 @@
         */
         function buildGame () {
             // Sizes
-            _barX  = (_gameWidth / 2) - (_barWidth / 2)
-            _barY  = _gameHeight - Breakoid.BAR_HEIGHT - 2
-            _ballX = _gameWidth / 1.3
-            _ballY = _gameHeight / 2
+            _barX     = (_gameWidth / 2) - (_barWidth / 2)
+            _barY     = _gameHeight - Breakoid.BAR_HEIGHT - 2
+            _ballX    = _gameWidth / 1.3
+            _ballY    = _gameHeight / 2
+            _ballDirX = -1
+            _ballDirY = 1
             clearContext()
             // Bricks
             for (var i=0 ; i<Breakoid.NBROWS ; i++) {
@@ -108,7 +116,7 @@
                 _bricksArray[i].color = _ctx.fillStyle
                 for (var j=0 ; j<Breakoid.NBCOLS ; j++) {
                     _ctx.fillRect( (j * (_brickWidth + Breakoid.EMPTY_SPACE)) + Breakoid.EMPTY_SPACE, (i * (Breakoid.BRICK_HEIGHT + Breakoid.EMPTY_SPACE)) + Breakoid.EMPTY_SPACE, _brickWidth, Breakoid.BRICK_HEIGHT)
-                    _bricksArray[i][j] = true // a brick is present
+                    _bricksArray[i][j] = true // a brick is here
                 }
             }
             // Bar
@@ -140,7 +148,7 @@
                 }
             }
             //if (won)
-                //gameWon()
+                //gameIsFinished('You won!')
             barOnTick() // Bar
         };
 
@@ -155,7 +163,7 @@
             _ballY += _ballDirY
             if (_ballX + Breakoid.BALL_SIZE > _gameWidth) _ballDirX  = -1 // right border
             else if (_ballX - Breakoid.BALL_SIZE < 0 )    _ballDirX  = 1 // left border
-            if (_ballY + Breakoid.BALL_SIZE > _gameHeight) gameLost()
+            if (_ballY + Breakoid.BALL_SIZE > _gameHeight) gameIsFinished('You lost!')
             else {
                 if (_ballY - Breakoid.BALL_SIZE < 0 ) _ballDirY = 1 // top border
                 else {
@@ -227,29 +235,15 @@
         };
 
         /**
-        * Notificate the user he won the game.
+        * Notificate the user that the game is finisehd, and prints the reason.
         *
-        * @method gameWon
+        * @method gameIsFinished
         * @return {void}
         */
-        function gameWon () {
+        function gameIsFinished (msg) {
             _running = false
             clearInterval(_interval)
-            console.log('You won.')
-            buildGame()
-        };
-
-        /**
-        * Notificate the user he lost the game.
-        *
-        * @method gameLost
-        * @return {void}
-        */
-        function gameLost () {
-            _running = false
-            clearInterval(_interval)
-            console.log('You lost.')
-            buildGame()
+            console.log(msg)
         };
 
         /**
@@ -280,7 +274,7 @@
         * @method start
         * @return {void}
         */
-        Breakoid.start = function () {
+        function start () {
             if (_ctx && !_running) {
                 _running = true
                 _interval = setInterval(tick, Breakoid.TICKS_INTERVAL)
