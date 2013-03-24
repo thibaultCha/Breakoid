@@ -6,16 +6,17 @@
     function Breakoid (canvasId) {
 
         Breakoid.TICKS_INTERVAL = 1
-        Breakoid.NBROWS         = 1
+        Breakoid.NBROWS         = 8
         Breakoid.NBCOLS         = 10
         Breakoid.BRICK_HEIGHT   = 15
         Breakoid.EMPTY_SPACE    = 5
         Breakoid.BAR_HEIGHT     = 10
         Breakoid.BAR_COLOR      = '#333333'
         Breakoid.BAR_SPEED      = 3
-        Breakoid.BAR_FRICTION   = 0.95
+        Breakoid.BAR_FRICTION   = 0.90
         Breakoid.BALL_COLOR     = 'red'
         Breakoid.BALL_SIZE      = 8
+        Breakoid.TEXT_COLOR     = 'blue'
 
         var _bricksArray = new Array(Breakoid.NBROWS)
         , _ctx // context
@@ -45,6 +46,8 @@
                 _barWidth   = _gameWidth / 8.0
                 _brickWidth = (_gameWidth / Breakoid.NBCOLS) - (Breakoid.EMPTY_SPACE * Breakoid.NBCOLS / Breakoid.NBCOLS+0.5)
                 keyboardListener()
+                _ctx.font = "20px sans-serif"
+                _ctx.fillStyle = Breakoid.TEXT_COLOR
                 buildGame()
             } else {
                 console.log('No canvas with id: %s', canvasId)
@@ -67,7 +70,7 @@
                         _arrowKeys['left'] = true
                     break
                     case 80: // p (pause)
-                        if (!_pause && _running) pause()
+                        if (_running && !_pause) pause()
                         else if (_running) resume()
                     break
                     case 82: // r (restart)
@@ -123,7 +126,7 @@
             _ctx.fillStyle = Breakoid.BAR_COLOR
             _ctx.fillRect(_barX, _barY, _barWidth, Breakoid.BAR_HEIGHT)
 
-            console.log("Press 's' to start the game.")
+            printText("Press S to start the game, R to reload.")
         };
 
         /**
@@ -147,8 +150,8 @@
                     }
                 }
             }
-            //if (won)
-                //gameIsFinished('You won!')
+            if (won)
+                gameIsFinished('You won! Press R to reload the game.')
             barOnTick() // Bar
         };
 
@@ -163,7 +166,7 @@
             _ballY += _ballDirY
             if (_ballX + Breakoid.BALL_SIZE > _gameWidth) _ballDirX  = -1 // right border
             else if (_ballX - Breakoid.BALL_SIZE < 0 )    _ballDirX  = 1 // left border
-            if (_ballY + Breakoid.BALL_SIZE > _gameHeight) gameIsFinished('You lost!')
+            if (_ballY + Breakoid.BALL_SIZE > _gameHeight) gameIsFinished('You lost! Press R to reload the game.')
             else {
                 if (_ballY - Breakoid.BALL_SIZE < 0 ) _ballDirY = 1 // top border
                 else {
@@ -235,15 +238,14 @@
         };
 
         /**
-        * Notificate the user that the game is finisehd, and prints the reason.
-        *
-        * @method gameIsFinished
+        * Print some text on the canvas.
+        * 
+        * @method printText
+        * @param {string} msg The text to print
         * @return {void}
         */
-        function gameIsFinished (msg) {
-            _running = false
-            clearInterval(_interval)
-            console.log(msg)
+        function printText (msg) {
+            _ctx.fillText(msg, _gameWidth / 2 - _ctx.measureText(msg).width / 2, Breakoid.NBROWS * (Breakoid.BRICK_HEIGHT + Breakoid.EMPTY_SPACE) + 30)
         };
 
         /**
@@ -269,6 +271,18 @@
         };
 
         /**
+        * Notificate the user that the game is finisehd, and prints the reason.
+        *
+        * @method gameIsFinished
+        * @return {void}
+        */
+        function gameIsFinished (msg) {
+            _running = false
+            clearInterval(_interval)
+            printText(msg)
+        };
+
+        /**
         * Start the game.
         *
         * @method start
@@ -279,8 +293,12 @@
                 _running = true
                 _interval = setInterval(tick, Breakoid.TICKS_INTERVAL)
             }
-            else
-                console.log('Error during initialization. Start aborted.')
+            else if (_ctx) {
+                printText('Error during initialization. Can\'t start game.')
+            }
+            else {
+                console.log('Error during initialization. Can\'t start game.')
+            }
         };
     }
 
