@@ -14,12 +14,12 @@ Breakoïd is a JavaScript bricks breaking game. Built for fun and training on fr
 2. Include breakoid.js and do:
 ```javascript
 var breakoid = new Breakoid('canvasid')
-breakoid.start()
 ```
+
+3. Press `S` to start, `R` to reload, `P` to pause or resume the game.
 
 * Breakoïd calculates your bricks' width according to the canvas's width, the number of columns (NBCOLS) and the space between bricks (EMPTY_SPACE).
 * Try to play with Breakoïd's constants to custom your game.
-* Press 'p' to pause and resume the game.
 
 ## Disclaimer and suggestions
 This is a very basic game and the actual architecture is basic, but I'd wish to make it functional and playable. Code will be improved.
