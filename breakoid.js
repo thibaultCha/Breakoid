@@ -182,12 +182,14 @@
                 }
             }
  
-            // Ball is in brick zone (First empty space row, the top of the game, is NOT considered as the brick zone because of...)
+            // Ball is in brick zone (First empty space row, the top of the game, is NOT considered as the brick zone because of...
             if (_ballY - Breakoid.BALL_SIZE <= Breakoid.NBROWS * (Breakoid.BRICK_HEIGHT + Breakoid.EMPTY_SPACE) 
-                && _ballY - Breakoid.BALL_SIZE > Breakoid.BRICK_HEIGHT) {
+                && 
+                _ballY - Breakoid.BALL_SIZE > Breakoid.BRICK_HEIGHT)
+            {
                 var Y = Math.floor((_ballY - Breakoid.BALL_SIZE + Breakoid.BRICK_HEIGHT) / (Breakoid.BRICK_HEIGHT + Breakoid.EMPTY_SPACE)) - 1
-                var X = Math.floor(_ballX / (_brickWidth + Breakoid.EMPTY_SPACE))
-                if (_bricksArray[Y][X]) { // ...this. And because we don't need to do this stuff anyway.
+                var X = Math.floor((_ballX - Breakoid.BALL_SIZE + _brickWidth) / (_brickWidth + Breakoid.EMPTY_SPACE)) -1
+                if (_bricksArray[Y][X]) { // ...this (undefined property). And because we don't need to do this stuff anyway.)
                     _bricksArray[Y][X] = false
                     _ballDirY = 1
                 }
