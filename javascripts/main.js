@@ -30,6 +30,8 @@ $(document).ready(function(){
   sectionHeight();
   
   $('img').load(sectionHeight);
+
+  var breakoid = new Breakoid('breakoid-canvas');
 });
 
 fixScale = function(doc) {

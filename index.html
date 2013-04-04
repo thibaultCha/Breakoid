@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="stylesheets/styles.css">
     <link rel="stylesheet" href="stylesheets/pygment_trac.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script src="../breakoid.js"></script>
     <script src="javascripts/main.js"></script>
     <!--[if lt IE 9]>
       <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
@@ -18,7 +19,7 @@
 
       <header>
         <h1>Breakoid</h1>
-        <p>A JavaScript bricks breaking game</p>
+        <p>I made this JavaScript bricks breaking game for fun and training, on my free time. I'm open to any criticism or suggestion :)</p>
       </header>
 
       <div id="banner">
@@ -39,7 +40,9 @@
         <ul></ul>
       </nav>
       <section>
-        <p>I made this JavaScript bricks breaking game for fun and training, on my free time. I'm open to any criticism or suggestion :)</p>
+        <canvas id="breakoid-canvas", width="500" heigth="400">
+            Your browser does not support the canvas element.
+        </canvas>
       </section>
       <footer>
         <p>Project maintained by <a href="https://github.com/thibaultCha">thibaultCha</a></p>
