@@ -70,8 +70,8 @@
                         _arrowKeys['left'] = true
                     break
                     case 80: // p (pause)
-                        if (_running && !_pause) pause()
-                        else if (_running) resume()
+                        if (_running)
+                            pause()
                     break
                     case 82: // r (restart)
                         _running = false
@@ -249,25 +249,21 @@
         };
 
         /**
-        * Pause the game by clearing the refreshing interval.
+        * Pause or resume the game by clearing 
+        * or setting the refreshing interval.
         *
         * @method pause
         * @return {void}
         */
         function pause () {
-            _pause = true
-            clearInterval(_interval)
-        };
-
-        /**
-        * Resume the game by setting the refreshing interval.
-        *
-        * @method resume
-        * @return {void}
-        */
-        function resume () {
-            _pause = false
-            _interval = setInterval(tick, Breakoid.TICKS_INTERVAL)
+            if (!_pause) {
+                _pause = true
+                clearInterval(_interval)
+            }
+            else {
+                _pause = false
+                _interval = setInterval(tick, Breakoid.TICKS_INTERVAL)
+            }
         };
 
         /**
