@@ -1,9 +1,9 @@
 # Breakoïd
-Breakoïd is a JavaScript bricks breaking game. Built for fun and training on free time.
+Breakoïd is a JavaScript bricks breaking game. Built for fun and training on free time. Playable demo [here](http://thibaultcha.github.io/Breakoid/).
 
 ![](screen.png)
 
-## Use it
+## How to
 1. Take a canvas:
 ```html
 <canvas id="canvasid" width="500" height="400">
@@ -11,7 +11,7 @@ Breakoïd is a JavaScript bricks breaking game. Built for fun and training on fr
 </canvas>
 ```
 
-2. Include breakoid.js and do:
+2. Include breakoid.js and write:
 ```javascript
 var breakoid = new Breakoid('canvasid')
 ```
@@ -19,12 +19,12 @@ var breakoid = new Breakoid('canvasid')
 3. Press `S` to start, `R` to reload, `P` to pause or resume the game.
 
 * Breakoïd calculates your bricks' width according to the canvas's width, the number of columns (NBCOLS) and the space between bricks (EMPTY_SPACE).
-* Try to play with Breakoïd's constants to custom your game.
+* Try to play with Breakoïd's constants to customize the game.
 
 ## Disclaimer and suggestions
 This is a very basic game and the actual architecture is basic, but I'd wish to make it functional and playable. Code will be improved.
 
-**Fell free to submit pull requests or roadmap suggestions.** Especially if your good at Maths, collisions and stuff like this.
+**Fell free to submit pull requests or roadmap suggestions.**
 
 ## Roadmap
 - Finish the basics (ex: sides/top of bricks collisions).
