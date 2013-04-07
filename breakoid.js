@@ -20,7 +20,7 @@
         Breakoid.BAR_FRICTION   = 0.90
         Breakoid.BALL_COLOR     = 'red'
         Breakoid.BALL_SIZE      = 8
-        Breakoid.TEXT_COLOR     = 'blue'
+        Breakoid.TEXT_COLOR     = '#333333'
 
         var _bricksArray = new Array(Breakoid.NBROWS)
         , _ctx // context
@@ -74,8 +74,7 @@
                         _arrowKeys['left'] = true
                     break
                     case 80: // p (pause)
-                        if (_running)
-                            pause()
+                        if (_running) pause()
                     break
                     case 82: // r (restart)
                         _running = false
@@ -83,8 +82,7 @@
                         buildGame()
                     break
                     case 83: // s (start)
-                        if (!_running)
-                            start()
+                        if (!_running) start()
                     break
                 }
             }
