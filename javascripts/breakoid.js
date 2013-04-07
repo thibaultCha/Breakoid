@@ -1,5 +1,9 @@
 /**
-* JavaScript Bricks Breaking game.
+* Breakoid, A JavaScript Bricks Breaking game.
+* Built for fun and training on free time.
+*
+* @author thibaultCha
+* @version 0.1
 */
 ;(function (window) {
 
@@ -16,7 +20,7 @@
         Breakoid.BAR_FRICTION   = 0.90
         Breakoid.BALL_COLOR     = 'red'
         Breakoid.BALL_SIZE      = 8
-        Breakoid.TEXT_COLOR     = 'blue'
+        Breakoid.TEXT_COLOR     = '#333333'
 
         var _bricksArray = new Array(Breakoid.NBROWS)
         , _ctx // context
@@ -44,10 +48,10 @@
                 _gameWidth  = canvas.width
                 _gameHeight = canvas.height
                 _barWidth   = _gameWidth / 8.0
-                _brickWidth = (_gameWidth / Breakoid.NBCOLS) - (Breakoid.EMPTY_SPACE * Breakoid.NBCOLS / Breakoid.NBCOLS+0.5)
-                keyboardListener()
+                _brickWidth = (_gameWidth / Breakoid.NBCOLS) - 
+                              (Breakoid.EMPTY_SPACE * Breakoid.NBCOLS / Breakoid.NBCOLS+0.5)
+                bindKeyboard()
                 _ctx.font = "20px sans-serif"
-                _ctx.fillStyle = Breakoid.TEXT_COLOR
                 buildGame()
             } else {
                 console.log('No canvas with id: %s', canvasId)
@@ -57,10 +61,10 @@
         /**
         * Bind the keyboard for shortcuts and bar moves.
         *
-        * @method keyboardListener
+        * @method bindKeyboard
         * return {void}
         */
-        function keyboardListener () {
+        function bindKeyboard () {
             window.document.onkeydown = function (e) {
                 switch (e.keyCode) {
                     case 39:
@@ -70,8 +74,7 @@
                         _arrowKeys['left'] = true
                     break
                     case 80: // p (pause)
-                        if (_running)
-                            pause()
+                        if (_running) pause()
                     break
                     case 82: // r (restart)
                         _running = false
@@ -79,8 +82,7 @@
                         buildGame()
                     break
                     case 83: // s (start)
-                        if (!_running)
-                            start()
+                        if (!_running) start()
                     break
                 }
             }
@@ -97,7 +99,9 @@
         }
 
         /**
-        * Calculate bar and ball sizes and positions and build the first frame.
+        * Calculates bar and ball sizes and position.
+        * Also builds the first frame by drawing all bricks
+        * with a randomly chosen color.
         *
         * @method buildGame
         * @return {void}
@@ -115,10 +119,15 @@
             for (var i=0 ; i<Breakoid.NBROWS ; i++) {
                 _bricksArray[i] = new Array(Breakoid.NCOLS)
                 // random line color
-                _ctx.fillStyle = "rgb("+Math.floor(Math.random()*256)+","+Math.floor(Math.random()*256)+","+Math.floor(Math.random()*256)+")"
+                _ctx.fillStyle = "rgb("+Math.floor(Math.random()*256)
+                                      +","+Math.floor(Math.random()*256)
+                                      +","+Math.floor(Math.random()*256)+")"
                 _bricksArray[i].color = _ctx.fillStyle
                 for (var j=0 ; j<Breakoid.NBCOLS ; j++) {
-                    _ctx.fillRect( (j * (_brickWidth + Breakoid.EMPTY_SPACE)) + Breakoid.EMPTY_SPACE, (i * (Breakoid.BRICK_HEIGHT + Breakoid.EMPTY_SPACE)) + Breakoid.EMPTY_SPACE, _brickWidth, Breakoid.BRICK_HEIGHT)
+                    _ctx.fillRect( (j * (_brickWidth + Breakoid.EMPTY_SPACE)) + Breakoid.EMPTY_SPACE
+                                   ,(i * (Breakoid.BRICK_HEIGHT + Breakoid.EMPTY_SPACE)) + Breakoid.EMPTY_SPACE
+                                   ,_brickWidth
+                                   ,Breakoid.BRICK_HEIGHT)
                     _bricksArray[i][j] = true // a brick is here
                 }
             }
@@ -130,13 +139,13 @@
         };
 
         /**
-        * Core method of the graphics, to be called by an interval.
+        * Core method of the graphics, called by the interval.
         * Will redraw every graphic element and bricks according to the _bricksArray array.
         *
-        * @method tick
+        * @method onTick
         * @return {void}
         */
-        function tick () {
+        function onTick () {
             clearContext()
             ballOnTick() // Ball
             // Bricks
@@ -145,13 +154,16 @@
                 _ctx.fillStyle = _bricksArray[i].color
                 for (var j=0 ; j<Breakoid.NBCOLS ; j++) {
                     if (_bricksArray[i][j]) {
-                        _ctx.fillRect( (j * (_brickWidth+Breakoid.EMPTY_SPACE)) + Breakoid.EMPTY_SPACE, (i * (Breakoid.BRICK_HEIGHT+Breakoid.EMPTY_SPACE)) + Breakoid.EMPTY_SPACE, _brickWidth, Breakoid.BRICK_HEIGHT)
+                        _ctx.fillRect( (j * (_brickWidth+Breakoid.EMPTY_SPACE)) + Breakoid.EMPTY_SPACE
+                                       ,(i * (Breakoid.BRICK_HEIGHT+Breakoid.EMPTY_SPACE)) + Breakoid.EMPTY_SPACE 
+                                       ,_brickWidth
+                                       ,Breakoid.BRICK_HEIGHT)
                         won = false
                     }
                 }
             }
             if (won)
-                gameIsFinished('You won! Press R to reload the game.')
+                finishGame('You won! Press R to reload the game.')
             barOnTick() // Bar
         };
 
@@ -166,15 +178,15 @@
             _ballY += _ballDirY
             if (_ballX + Breakoid.BALL_SIZE > _gameWidth) _ballDirX  = -1 // right border
             else if (_ballX - Breakoid.BALL_SIZE < 0 )    _ballDirX  = 1 // left border
-            if (_ballY + Breakoid.BALL_SIZE > _gameHeight) gameIsFinished('You lost! Press R to reload the game.')
+            if (_ballY + Breakoid.BALL_SIZE > _gameHeight) finishGame('You lost! Press R to reload the game.')
             else {
                 if (_ballY - Breakoid.BALL_SIZE < 0 ) _ballDirY = 1 // top border
                 else {
-                    // Ball touch the bar
-                    if  (
-                        _ballY + Breakoid.BALL_SIZE > _barY - 1
-                        && (_ballX >= _barX && _ballX <= _barX + _barWidth)
-                        ) {
+                    // Ball touches the bar
+                    if  (_ballY + Breakoid.BALL_SIZE > _barY - 1
+                        &&
+                        (_ballX >= _barX && _ballX <= _barX + _barWidth))
+                    {
                         _ballDirY = -1
                         if (_barVelocity > 1 || _barVelocity < -1)
                             _ballDirX = _barVelocity * 0.35
@@ -182,7 +194,8 @@
                 }
             }
  
-            // Ball is in brick zone (First empty space row, the top of the game, is NOT considered as the brick zone because of...
+            // Bricks collision stuff. Only bricks' bottom for now... :'(
+            // If ball is in brick zone. (First empty space row, the top of the game, is NOT considered as the brick zone because of...
             if (_ballY - Breakoid.BALL_SIZE <= Breakoid.NBROWS * (Breakoid.BRICK_HEIGHT + Breakoid.EMPTY_SPACE) 
                 && 
                 _ballY - Breakoid.BALL_SIZE > Breakoid.BRICK_HEIGHT)
@@ -247,7 +260,10 @@
         * @return {void}
         */
         function printText (msg) {
-            _ctx.fillText(msg, _gameWidth / 2 - _ctx.measureText(msg).width / 2, Breakoid.NBROWS * (Breakoid.BRICK_HEIGHT + Breakoid.EMPTY_SPACE) + 30)
+            _ctx.fillStyle = Breakoid.TEXT_COLOR
+            _ctx.fillText(msg
+                          ,_gameWidth / 2 - _ctx.measureText(msg).width / 2
+                          ,Breakoid.NBROWS * (Breakoid.BRICK_HEIGHT + Breakoid.EMPTY_SPACE) + 30)
         };
 
         /**
@@ -261,20 +277,19 @@
             if (!_pause) {
                 _pause = true
                 clearInterval(_interval)
-            }
-            else {
+            } else {
                 _pause = false
-                _interval = setInterval(tick, Breakoid.TICKS_INTERVAL)
+                _interval = setInterval(onTick, Breakoid.TICKS_INTERVAL)
             }
         };
 
         /**
-        * Notificate the user that the game is finisehd, and prints the reason.
+        * Notify the user that the game is finisehd, and prints the reason.
         *
-        * @method gameIsFinished
+        * @method finishGame
         * @return {void}
         */
-        function gameIsFinished (msg) {
+        function finishGame (msg) {
             _running = false
             clearInterval(_interval)
             printText(msg)
@@ -289,13 +304,10 @@
         function start () {
             if (_ctx && !_running) {
                 _running = true
-                _interval = setInterval(tick, Breakoid.TICKS_INTERVAL)
+                _interval = setInterval(onTick, Breakoid.TICKS_INTERVAL)
             }
             else if (_ctx) {
                 printText('Error during initialization. Can\'t start game.')
-            }
-            else {
-                console.log('Error during initialization. Can\'t start game.')
             }
         };
     }
