@@ -10,10 +10,10 @@
     function Breakoid (canvasId) {
 
         Breakoid.TICKS_INTERVAL = 1
-        Breakoid.NBROWS         = 8
-        Breakoid.NBCOLS         = 10
-        Breakoid.BRICK_HEIGHT   = 15
-        Breakoid.EMPTY_SPACE    = 5
+        Breakoid.NBROWS         = 3
+        Breakoid.NBCOLS         = 4
+        Breakoid.BRICK_HEIGHT   = 30
+        Breakoid.EMPTY_SPACE    = 0
         Breakoid.BAR_HEIGHT     = 10
         Breakoid.BAR_COLOR      = '#333333'
         Breakoid.BAR_SPEED      = 3
@@ -48,8 +48,8 @@
                 _gameWidth  = canvas.width
                 _gameHeight = canvas.height
                 _barWidth   = _gameWidth / 8.0
-                _brickWidth = (_gameWidth / Breakoid.NBCOLS) - 
-                              (Breakoid.EMPTY_SPACE * Breakoid.NBCOLS / Breakoid.NBCOLS+0.5)
+                _brickWidth = Math.floor((_gameWidth / Breakoid.NBCOLS) - 
+                              (Breakoid.EMPTY_SPACE * Breakoid.NBCOLS / Breakoid.NBCOLS+0.5))
                 bindKeyboard()
                 _ctx.font = "20px sans-serif"
                 buildGame()
@@ -116,19 +116,25 @@
             _ballDirY = 1
             clearContext()
             // Bricks
-            for (var i=0 ; i<Breakoid.NBROWS ; i++) {
-                _bricksArray[i] = new Array(Breakoid.NCOLS)
+            for (var row=0 ; row<Breakoid.NBROWS ; row++) {
+                _bricksArray[row] = new Array(Breakoid.NCOLS)
                 // random line color
                 _ctx.fillStyle = "rgb("+Math.floor(Math.random()*256)
-                                      +","+Math.floor(Math.random()*256)
-                                      +","+Math.floor(Math.random()*256)+")"
-                _bricksArray[i].color = _ctx.fillStyle
-                for (var j=0 ; j<Breakoid.NBCOLS ; j++) {
-                    _ctx.fillRect( (j * (_brickWidth + Breakoid.EMPTY_SPACE)) + Breakoid.EMPTY_SPACE
-                                   ,(i * (Breakoid.BRICK_HEIGHT + Breakoid.EMPTY_SPACE)) + Breakoid.EMPTY_SPACE
-                                   ,_brickWidth
-                                   ,Breakoid.BRICK_HEIGHT)
-                    _bricksArray[i][j] = true // a brick is here
+                                   +","+Math.floor(Math.random()*256)
+                                   +","+Math.floor(Math.random()*256)+")"
+                _bricksArray[row].color = _ctx.fillStyle
+                for (var col=0 ; col<Breakoid.NBCOLS ; col++) {
+                    var x = col * (_brickWidth + Breakoid.EMPTY_SPACE) + Breakoid.EMPTY_SPACE
+                    var y = row * (Breakoid.BRICK_HEIGHT + Breakoid.EMPTY_SPACE) + Breakoid.EMPTY_SPACE
+                    _ctx.fillRect(x, y, _brickWidth, Breakoid.BRICK_HEIGHT)
+                     // create a brick here
+                    _bricksArray[row][col] = {
+                        present      : true,
+                        topBorder    : Math.floor(y),
+                        leftBorder   : Math.floor(x),
+                        bottomBorder : Math.floor(y + Breakoid.BRICK_HEIGHT),
+                        rightBorder  : Math.floor(x + _brickWidth)
+                    }
                 }
             }
             // Bar
@@ -150,14 +156,12 @@
             ballOnTick() // Ball
             // Bricks
             var won = true
-            for (var i=0 ; i<Breakoid.NBROWS ; i++) {
-                _ctx.fillStyle = _bricksArray[i].color
-                for (var j=0 ; j<Breakoid.NBCOLS ; j++) {
-                    if (_bricksArray[i][j]) {
-                        _ctx.fillRect( (j * (_brickWidth+Breakoid.EMPTY_SPACE)) + Breakoid.EMPTY_SPACE
-                                       ,(i * (Breakoid.BRICK_HEIGHT+Breakoid.EMPTY_SPACE)) + Breakoid.EMPTY_SPACE 
-                                       ,_brickWidth
-                                       ,Breakoid.BRICK_HEIGHT)
+            for (var row=0 ; row<Breakoid.NBROWS ; row++) {
+                _ctx.fillStyle = _bricksArray[row].color
+                for (var col=0 ; col<Breakoid.NBCOLS ; col++) {
+                    var brick = _bricksArray[row][col]
+                    if (brick.present) {
+                        _ctx.fillRect(brick.leftBorder, brick.topBorder, _brickWidth, Breakoid.BRICK_HEIGHT)
                         won = false
                     }
                 }
@@ -176,36 +180,69 @@
         function ballOnTick () {
             _ballX += _ballDirX
             _ballY += _ballDirY
-            if (_ballX + Breakoid.BALL_SIZE > _gameWidth) _ballDirX  = -1 // right border
-            else if (_ballX - Breakoid.BALL_SIZE < 0 )    _ballDirX  = 1 // left border
-            if (_ballY + Breakoid.BALL_SIZE > _gameHeight) finishGame('You lost! Press R to reload the game.')
-            else {
-                if (_ballY - Breakoid.BALL_SIZE < 0 ) _ballDirY = 1 // top border
-                else {
-                    // Ball touches the bar
-                    if  (_ballY + Breakoid.BALL_SIZE > _barY - 1
-                        &&
-                        (_ballX >= _barX && _ballX <= _barX + _barWidth))
-                    {
-                        _ballDirY = -1
-                        if (_barVelocity > 1 || _barVelocity < -1)
-                            _ballDirX = _barVelocity * 0.35
-                    }
-                }
+            // Local variables to simplify the collisions code
+            var topBall  = Math.floor(_ballY - Breakoid.BALL_SIZE)
+            , bottomBall = Math.floor(_ballY + Breakoid.BALL_SIZE)
+            , leftBall   = Math.floor(_ballX - Breakoid.BALL_SIZE)
+            , rightBall  = Math.floor(_ballX + Breakoid.BALL_SIZE)
+
+            // Borders collision stuff
+            if (rightBall > _gameWidth)        _ballDirX = -1 // right border
+            else if (leftBall < 0)             _ballDirX = 1 // left border
+            else if (bottomBall > _gameHeight) _ballDirY = -1  //finishGame('You lost! Press R to reload the game.')
+            else if (topBall < 0)              _ballDirY = 1 // top border
+            // Bar collision stuff
+            else if (bottomBall > _barY - 1
+                    &&
+                    (_ballX >= _barX && _ballX <= _barX + _barWidth))
+            {
+                _ballDirY = -1
+                //if (_barVelocity > 1 || _barVelocity < -1) _ballDirX = _barVelocity * 0.35
             }
  
-            // Bricks collision stuff. Only bricks' bottom for now... :'(
-            // If ball is in brick zone. (First empty space row, the top of the game, is NOT considered as the brick zone because of...
-            if (_ballY - Breakoid.BALL_SIZE <= Breakoid.NBROWS * (Breakoid.BRICK_HEIGHT + Breakoid.EMPTY_SPACE) 
+            // Bricks collision stuff
+            if (topBall <= Breakoid.NBROWS * (Breakoid.BRICK_HEIGHT + Breakoid.EMPTY_SPACE) 
                 && 
-                _ballY - Breakoid.BALL_SIZE > Breakoid.BRICK_HEIGHT)
+                topBall > Breakoid.BRICK_HEIGHT)
             {
-                var Y = Math.floor((_ballY - Breakoid.BALL_SIZE + Breakoid.BRICK_HEIGHT) / (Breakoid.BRICK_HEIGHT + Breakoid.EMPTY_SPACE)) - 1
-                var X = Math.floor((_ballX - Breakoid.BALL_SIZE + _brickWidth) / (_brickWidth + Breakoid.EMPTY_SPACE)) -1
-                if (_bricksArray[Y][X]) { // ...this (undefined property). And because we don't need to do this stuff anyway.)
-                    _bricksArray[Y][X] = false
-                    _ballDirY = 1
+                // This doesn't find the closest brick to the ball
+                var col = Math.floor((_ballX + _ballDirX * Breakoid.BALL_SIZE) / (_brickWidth + Breakoid.EMPTY_SPACE))
+                var row = Math.floor((_ballY + _ballDirY * Breakoid.BALL_SIZE) / (Breakoid.BRICK_HEIGHT + Breakoid.EMPTY_SPACE))                
+                
+            console.log("row: " + row + " col: " + col)
+
+                var brick = _bricksArray[row][col]
+
+            // DEBUG
+            //console.log("ROW: ", _bricksArray[row])
+            //console.log("COL: ", _bricksArray[row][col])
+            console.log("BallTop:    " + topBall +    " BrickBottom: " + brick.bottomBorder)
+            console.log("BallLeft:   " + leftBall +   " BrickRight:  " + brick.rightBorder)
+            console.log("BallRight:  " + rightBall +  " BrickLeft:   " + brick.leftBorder)
+            console.log("BallBottom: " + bottomBall + " BrickTop:    " + brick.topBorder)
+
+                if (_bricksArray[row][col].present) {
+                    if (topBall == brick.bottomBorder) {
+                        console.log("top hit")
+                        _ballDirY = 1
+                        _bricksArray[row][col].present = false
+                    } else if (rightBall == brick.leftBorder) {
+                        console.log("right hit")
+                        _ballDirX = -1
+                        _bricksArray[row][col].present = false
+                    } else if (bottomBall == brick.topBorder) {
+                        console.log("bottom hit")
+                        _ballDirY = -1
+                        _bricksArray[row][col].present = false
+                    } else if (leftBall == brick.rightBorder) {
+                        console.log("left hit")
+                        _ballDirX = 1
+                        _bricksArray[row][col].present = false
+                    }
                 }
+
+            // DEBUG
+            //pause()
             }
 
             _ctx.fillStyle = Breakoid.BALL_COLOR
@@ -277,6 +314,7 @@
             if (!_pause) {
                 _pause = true
                 clearInterval(_interval)
+                printText("Game paused. Press P to resume.")
             } else {
                 _pause = false
                 _interval = setInterval(onTick, Breakoid.TICKS_INTERVAL)
@@ -305,8 +343,7 @@
             if (_ctx && !_running) {
                 _running = true
                 _interval = setInterval(onTick, Breakoid.TICKS_INTERVAL)
-            }
-            else if (_ctx) {
+            } else if (_ctx) {
                 printText('Error during initialization. Can\'t start game.')
             }
         };
