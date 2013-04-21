@@ -201,48 +201,50 @@
             }
  
             // Bricks collision stuff
-            if (topBall <= Breakoid.NBROWS * (Breakoid.BRICK_HEIGHT + Breakoid.EMPTY_SPACE) 
-                && 
-                topBall > Breakoid.BRICK_HEIGHT)
-            {
-                // This doesn't find the closest brick to the ball
-                var col = Math.floor((_ballX + _ballDirX * Breakoid.BALL_SIZE) / (_brickWidth + Breakoid.EMPTY_SPACE))
-                var row = Math.floor((_ballY + _ballDirY * Breakoid.BALL_SIZE) / (Breakoid.BRICK_HEIGHT + Breakoid.EMPTY_SPACE))                
-                
-            console.log("row: " + row + " col: " + col)
+            if (topBall <= Breakoid.NBROWS * (Breakoid.BRICK_HEIGHT + Breakoid.EMPTY_SPACE)) {               
 
-                var brick = _bricksArray[row][col]
-
-            // DEBUG
-            //console.log("ROW: ", _bricksArray[row])
-            //console.log("COL: ", _bricksArray[row][col])
-            console.log("BallTop:    " + topBall +    " BrickBottom: " + brick.bottomBorder)
-            console.log("BallLeft:   " + leftBall +   " BrickRight:  " + brick.rightBorder)
-            console.log("BallRight:  " + rightBall +  " BrickLeft:   " + brick.leftBorder)
-            console.log("BallBottom: " + bottomBall + " BrickTop:    " + brick.topBorder)
-
-                if (_bricksArray[row][col].present) {
-                    if (topBall == brick.bottomBorder) {
-                        console.log("top hit")
-                        _ballDirY = 1
-                        _bricksArray[row][col].present = false
-                    } else if (rightBall == brick.leftBorder) {
-                        console.log("right hit")
-                        _ballDirX = -1
-                        _bricksArray[row][col].present = false
-                    } else if (bottomBall == brick.topBorder) {
-                        console.log("bottom hit")
-                        _ballDirY = -1
-                        _bricksArray[row][col].present = false
-                    } else if (leftBall == brick.rightBorder) {
-                        console.log("left hit")
-                        _ballDirX = 1
-                        _bricksArray[row][col].present = false
-                    }
+                // find the closest brick based on direction of ball
+                if(_ballDirX == 1 && _ballDirY == 1) { //
+                    var col = Math.floor((rightBall + _brickWidth) / (_brickWidth + Breakoid.EMPTY_SPACE)) - 1
+                    var row = Math.floor(bottomBall / (Breakoid.BRICK_HEIGHT + Breakoid.EMPTY_SPACE))
+                } else if(_ballDirX == 1 && _ballDirY == -1) { //
+                    var col = Math.floor((rightBall + _brickWidth) / (_brickWidth + Breakoid.EMPTY_SPACE)) - 1
+                    var row = Math.floor((topBall + Breakoid.BRICK_HEIGHT) / (Breakoid.BRICK_HEIGHT + Breakoid.EMPTY_SPACE)) - 1
+                } else if(_ballDirX == -1 && _ballDirY == 1) {
+                    var col = Math.floor((leftBall + _brickWidth) / (_brickWidth + Breakoid.EMPTY_SPACE)) - 1 
+                    var row = Math.floor(bottomBall / (Breakoid.BRICK_HEIGHT + Breakoid.EMPTY_SPACE))
+                } else if(_ballDirX == -1 && _ballDirY == -1) {
+                    var col = Math.floor((leftBall + _brickWidth) / (_brickWidth + Breakoid.EMPTY_SPACE)) - 1
+                    var row = Math.floor(topBall / (Breakoid.BRICK_HEIGHT + Breakoid.EMPTY_SPACE)) - 1
                 }
 
-            // DEBUG
-            //pause()
+                // avoid wrong values of row and col
+                // when the player is over the game borders.    
+                try {
+                    var brick = _bricksArray[row][col]
+                    // check for collision
+                    if (_bricksArray[row][col].present) {
+                        if (topBall == brick.bottomBorder) {
+                            console.log("top hit")
+                            _ballDirY = 1
+                            _bricksArray[row][col].present = false
+                        } else if (rightBall == brick.leftBorder) {
+                            console.log("right hit")
+                            _ballDirX = -1
+                            _bricksArray[row][col].present = false
+                        } else if (bottomBall == brick.topBorder) {
+                            console.log("bottom hit")
+                            _ballDirY = -1
+                            _bricksArray[row][col].present = false
+                        } else if (leftBall == brick.rightBorder) {
+                            console.log("left hit")
+                            _ballDirX = 1
+                            _bricksArray[row][col].present = false
+                        }
+                    }
+                } catch(e){
+                    //console.log("row: " + row + " col: " + col)
+                }   
             }
 
             _ctx.fillStyle = Breakoid.BALL_COLOR
